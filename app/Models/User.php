@@ -58,4 +58,10 @@ class User extends Authenticatable
     {
         return $this->hasMany(Posts::class);
     }
+
+    //Thêm quan hệ favorites vào model User:
+    public function favorites()
+    {
+        return $this->belongsToMany(Favorities::class, 'user_favorite', 'favorite_id', 'user_id');
+    }
 }

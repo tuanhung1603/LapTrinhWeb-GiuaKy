@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+
 /**
  * CRUD User controller
  */
@@ -32,7 +33,7 @@ class CrudUserController extends Controller
             'password' => 'required',
         ]);
 
-       $credentials = $request->only('email', 'password');
+        $credentials = $request->only('email', 'password');
 
         if (Auth::attempt($credentials)) {
             return redirect()->intended('list')
@@ -65,12 +66,12 @@ class CrudUserController extends Controller
             'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
 
         ]);
-         //Kiem tra tep tin co truong du lieu avatar hay kh
-         if($request->hasFile('avatar')){
+        //Kiem tra tep tin co truong du lieu avatar hay kh
+        if ($request->hasFile('avatar')) {
             $file = $request->file('avatar');
-            $extension = $file->getClientOriginalExtension();//Lay ten mo rong .jpg, .png...
-            $filename = time().'.'.$extension;//
-            $file->move('avatar/',$filename) ;  //upload len thu muc avatar trong piblic
+            $extension = $file->getClientOriginalExtension(); //Lay ten mo rong .jpg, .png...
+            $filename = time() . '.' . $extension; //
+            $file->move('avatar/', $filename);  //upload len thu muc avatar trong piblic
         }
 
         //Lay tat ca co so du lieu gan vao mang data
@@ -93,17 +94,20 @@ class CrudUserController extends Controller
     /**
      * View user detail page
      */
-    public function readUser(Request $request) {
+    public function readUser(Request $request)
+    {
         $user_id = $request->get('id');
-        $user = User::find($user_id);
+        $user = User::with('favorites')->find($user_id); //tải sở thích của người dùng cùng với thông tin người dùng.
 
+        // Gửi đối tượng 'user' đã bao gồm 'favorites' tới view
         return view('crud_user.read', ['user' => $user]);
     }
 
     /**
      * Delete user by id
      */
-    public function deleteUser(Request $request) {
+    public function deleteUser(Request $request)
+    {
         $user_id = $request->get('id');
         $user = User::destroy($user_id);
 
@@ -131,37 +135,37 @@ class CrudUserController extends Controller
 
         $request->validate([
             'name' => 'required',
-            'email' => 'required|email|unique:users,id,'.$input['id'],
+            'email' => 'required|email|unique:users,id,' . $input['id'],
             'password' => 'required|min:6',
             'phone' => 'required|min:10',
             //'mssv' => 'required',
-            'mssv' =>'required|unique:users',
+            'mssv' => 'required|unique:users',
 
             'avatar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
 
 
-       $user = User::find($input['id']);
-       $user->name = $input['name'];
-       $user->email = $input['email'];
-       $user->password = $input['password'];
-       $user->phone = $input['phone'];
-       $user->mssv = $input['mssv'];
-          //Kiem tra tep tin co truong du lieu avatar hay kh
-          if($request->hasFile('avatar')){
+        $user = User::find($input['id']);
+        $user->name = $input['name'];
+        $user->email = $input['email'];
+        $user->password = $input['password'];
+        $user->phone = $input['phone'];
+        $user->mssv = $input['mssv'];
+        //Kiem tra tep tin co truong du lieu avatar hay kh
+        if ($request->hasFile('avatar')) {
 
             //co file dinh kem trong form update thi tim file cu va xoa di
             //Neu $anhcu ton tai thi xoa no di , neu kh co thi kh xoa
             $anhcu = 'avatar/' . $user->avatar;
-            if(File::exists($anhcu)){
+            if (File::exists($anhcu)) {
                 File::delete($anhcu);
             }
 
             $file = $request->file('avatar');
-            $extension = $file->getClientOriginalExtension();//Lay ten mo rong .jpg, .png...
-            $filename = time().'.'.$extension;//
-            $file->move('avatar/',$filename) ;  //upload len thu muc avatar trong piblic
+            $extension = $file->getClientOriginalExtension(); //Lay ten mo rong .jpg, .png...
+            $filename = time() . '.' . $extension; //
+            $file->move('avatar/', $filename);  //upload len thu muc avatar trong piblic
         }
         $user->avatar = $filename;
         $user->update();
@@ -174,10 +178,10 @@ class CrudUserController extends Controller
      */
     public function listUser()
     {
-        if(Auth::check()){
+        if (Auth::check()) {
             // $users = User::all();//Lay tat ca du lieu trong ban user
             $users = User::paginate(2);
-            return view('crud_user.list', ['users' => $users]);//->with('i',(request()->input('page',1)-1)*2);
+            return view('crud_user.list', ['users' => $users]); //->with('i',(request()->input('page',1)-1)*2);
         }
 
         return redirect("login")->withSuccess('You are not allowed to access');
@@ -186,7 +190,8 @@ class CrudUserController extends Controller
     /**
      * Sign out
      */
-    public function signOut() {
+    public function signOut()
+    {
         Session::flush();
         Auth::logout();
 
